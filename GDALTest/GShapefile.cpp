@@ -47,14 +47,7 @@ namespace gs {
 		}
 		return os;
 	}
-
-	Shape::Shape() {
-	}
-
-
-	Shape::~Shape() {
-	}
-
+	
 	bool Shape::load(const std::string& filename) {
 		GDALAllRegister();
 
@@ -75,6 +68,7 @@ namespace gs {
 		int i = 0;
 		for (int n = 0; n < nLayers; ++n) {
 			OGRLayer* poLayer = poDS->GetLayer(n);
+			shapeType = poLayer->GetGeomType();
 			shapeObjects.resize(shapeObjects.size() + poLayer->GetFeatureCount());
 			
 			OGRFeature* poFeature;
@@ -108,10 +102,6 @@ namespace gs {
 					}
 				}
 
-				if (shapeObjects[i].attributes["NbreEtages"].intValue() > 30) {
-					int xxx = 0;
-				}
-
 				// このshapeのベクトルデータを読み込む
 				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
 				if (poGeometry != NULL) {
@@ -125,7 +115,10 @@ namespace gs {
 
 						updateBounds(poPoint);
 					}
-					else if (wkbFlatten(poGeometry->getGeometryType()) == wkbLineString) {						OGRLineString* poLineString = (OGRLineString*)poGeometry;						readLineString(poLineString, shapeObjects[i]);					}
+					else if (wkbFlatten(poGeometry->getGeometryType()) == wkbLineString) {
+						OGRLineString* poLineString = (OGRLineString*)poGeometry;
+						readLineString(poLineString, shapeObjects[i]);
+					}
 					else if (wkbFlatten(poGeometry->getGeometryType()) == wkbPolygon) {
 						OGRPolygon* poPolygon = (OGRPolygon*)poGeometry;
 						readPolygon(poPolygon, shapeObjects[i]);
@@ -152,6 +145,110 @@ namespace gs {
 		return true;
 	}
 
+	bool Shape::save(const std::string& filename) {
+		if (shapeType == -1) {
+			std::cout << "Shape type is not set." << std::endl;
+			return false;
+		}
+
+		if (shapeObjects.size() == 0) {
+			std::cout << "No shape exists." << std::endl;
+			return false;
+		}
+
+		const char *pszDriverName = "ESRI Shapefile";
+		GDALDriver *poDriver;
+		GDALAllRegister();
+
+		poDriver = GetGDALDriverManager()->GetDriverByName(pszDriverName);
+		if (poDriver == NULL) {
+			printf("%s driver not available.\n", pszDriverName);
+			return false;
+		}
+
+		GDALDataset *poDS;
+		poDS = poDriver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+		if (poDS == NULL) {
+			printf("Creation of output file failed.\n");
+			return false;
+		}
+
+		OGRLayer *poLayer;
+		if (shapeType == wkbPoint) {
+			poLayer = poDS->CreateLayer("point_out", NULL, wkbPoint, NULL);
+		}
+		else if (shapeType == wkbLineString) {
+			poLayer = poDS->CreateLayer("point_out", NULL, wkbLineString, NULL);
+		}
+		else if (shapeType == wkbPolygon) {
+			poLayer = poDS->CreateLayer("point_out", NULL, wkbPolygon, NULL);
+		}
+		if (poLayer == NULL) {
+			printf("Layer creation failed.\n");
+			return false;
+		}
+
+		for (auto it = shapeObjects[0].attributes.begin(); it != shapeObjects[0].attributes.end(); ++it) {
+			OGRFieldDefn oField(it->first.c_str(), static_cast<OGRFieldType>(it->second.type));
+			if (it->second.type == OFTString) {
+				oField.SetWidth(it->second.stringValue().size());
+			}
+			if (poLayer->CreateField(&oField) != OGRERR_NONE) {
+				printf("Creating Name field failed.\n");
+				return false;
+			}
+		}
+				
+		for (int i = 0; i < shapeObjects.size(); ++i) {
+			if (shapeObjects[i].parts.size() == 0) continue;
+			
+			OGRFeature *poFeature;
+			poFeature = OGRFeature::CreateFeature(poLayer->GetLayerDefn());
+
+			// 属性をセット
+			for (auto it = shapeObjects[i].attributes.begin(); it != shapeObjects[i].attributes.end(); ++it) {
+				poFeature->SetField(it->first.c_str(), it->second.stringValue().c_str());
+			}
+
+			// ジオメトリ情報をセット
+			if (shapeType == wkbPoint) {
+				OGRPoint point;
+				point.setX(shapeObjects[i].parts[0].points[0].x);
+				point.setY(shapeObjects[i].parts[0].points[0].y);
+				point.setZ(shapeObjects[i].parts[0].points[0].z);
+				poFeature->SetGeometry(&point);
+			}
+			else if (shapeType == wkbLineString) {
+				OGRLineString lineString;
+				for (int k = 0; k < shapeObjects[i].parts[0].points.size(); ++k) {
+					lineString.addPoint(shapeObjects[i].parts[0].points[k].x, shapeObjects[i].parts[0].points[k].y, shapeObjects[i].parts[0].points[k].z);
+				}
+				poFeature->SetGeometry(&lineString);
+			}
+			else if (shapeType == wkbPolygon) {
+				OGRPolygon polygon;
+				for (int j = 0; j < shapeObjects[i].parts.size(); ++j) {
+					OGRLinearRing linearRing;
+					for (int k = 0; k < shapeObjects[i].parts[j].points.size(); ++k) {
+						linearRing.addPoint(shapeObjects[i].parts[j].points[k].x, shapeObjects[i].parts[j].points[k].y, shapeObjects[i].parts[j].points[k].z);
+					}
+					polygon.addRing(&linearRing);
+				}
+				poFeature->SetGeometry(&polygon);
+			}
+			
+			if (poLayer->CreateFeature(poFeature) != OGRERR_NONE) {
+				printf("Failed to create feature in shapefile.\n");
+				return false;
+			}
+			OGRFeature::DestroyFeature(poFeature);
+		}
+
+		GDALClose(poDS);
+
+		return true;
+	}
+
 	void Shape::updateBounds(OGRPoint* poPoint) {
 		// bounding boxを更新
 		if (poPoint->getX() < minBound.x) minBound.x = poPoint->getX();
@@ -162,6 +259,11 @@ namespace gs {
 		if (poPoint->getZ() > maxBound.z) maxBound.z = poPoint->getZ();
 	}
 
+	/**
+	 * 複数のポリゴンから成るオブジェクトを読み込む。
+	 * 今の実装は、正確には対応していない。オブジェクトのpartsに順次格納していくだけ。
+	 * そのため、アプリケーション側でparts[0]しか使わない場合、まずい。
+	 */
 	void Shape::readMultiPolygon(OGRMultiPolygon* poMultiPolygon, ShapeObject& shapeObject) {
 		int numGeometries = poMultiPolygon->getNumGeometries();
 		int partsIndex = 0;
@@ -198,7 +300,17 @@ namespace gs {
 	}
 
 	void Shape::readLineString(OGRLineString* lineString, ShapeObject& shapeObject) {
-		shapeObject.parts.resize(1);		shapeObject.parts[0].points.resize(lineString->getNumPoints());		for (int i = 0; i < lineString->getNumPoints(); ++i) {			OGRPoint point;			lineString->getPoint(i, &point);			shapeObject.parts[0].points[i].x = point.getX();			shapeObject.parts[0].points[i].y = point.getY();			updateBounds(&point);		}	}
+		shapeObject.parts.resize(1);
+		shapeObject.parts[0].points.resize(lineString->getNumPoints());
+
+		for (int i = 0; i < lineString->getNumPoints(); ++i) {
+			OGRPoint point;
+			lineString->getPoint(i, &point);
+			shapeObject.parts[0].points[i].x = point.getX();
+			shapeObject.parts[0].points[i].y = point.getY();
+			updateBounds(&point);
+		}
+	}
 
 	void Shape::readRing(OGRLinearRing* ring, ShapePart& shapePart) {
 		shapePart.points.resize(ring->getNumPoints());

@@ -14,8 +14,9 @@ public:
 	~MainWindow();
 
 public slots:
-	void onOpenSHP();
 	void onOpenDEM();
+	void onOpenSHP();
+	void onSaveSHP();
 
 private:
 	Ui::MainWindowClass ui;

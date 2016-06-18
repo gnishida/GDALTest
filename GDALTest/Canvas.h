@@ -22,8 +22,9 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* e);
 
 public:
-	void loadShapfile(const std::string& filename);
 	void loadDEMfile(const std::string& filename);
+	void loadShapfile(const std::string& filename);
+	void saveShapfile(const std::string& filename);
 	void constrainCameraCenter();
 	void updateShapeImage();
 	void selectShape(const glm::vec2& pt);

@@ -60,10 +60,11 @@ namespace gs {
 		std::vector<ShapeObject> shapeObjects;
 
 	public:
-		Shape();
-		~Shape();
+		Shape() : shapeType(-1) {}
+		Shape(int shapeType) : shapeType(shapeType) {}
 
 		bool load(const std::string& filename);
+		bool save(const std::string& filename);
 
 	private:
 		void updateBounds(OGRPoint* poPoint);

@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'MainWindow.ui'
 **
-** Created by: Qt User Interface Compiler version 5.6.0
+** Created by: Qt User Interface Compiler version 5.6.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -29,6 +29,7 @@ public:
     QAction *actionOpenSHP;
     QAction *actionExit;
     QAction *actionOpenDEM;
+    QAction *actionSaveSHP;
     QWidget *centralWidget;
     QMenuBar *menuBar;
     QMenu *menuFile;
@@ -46,6 +47,8 @@ public:
         actionExit->setObjectName(QStringLiteral("actionExit"));
         actionOpenDEM = new QAction(MainWindowClass);
         actionOpenDEM->setObjectName(QStringLiteral("actionOpenDEM"));
+        actionSaveSHP = new QAction(MainWindowClass);
+        actionSaveSHP->setObjectName(QStringLiteral("actionSaveSHP"));
         centralWidget = new QWidget(MainWindowClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         MainWindowClass->setCentralWidget(centralWidget);
@@ -63,8 +66,10 @@ public:
         MainWindowClass->setStatusBar(statusBar);
 
         menuBar->addAction(menuFile->menuAction());
-        menuFile->addAction(actionOpenSHP);
         menuFile->addAction(actionOpenDEM);
+        menuFile->addAction(actionOpenSHP);
+        menuFile->addAction(actionSaveSHP);
+        menuFile->addSeparator();
         menuFile->addAction(actionExit);
 
         retranslateUi(MainWindowClass);
@@ -79,6 +84,7 @@ public:
         actionOpenSHP->setShortcut(QApplication::translate("MainWindowClass", "Ctrl+O", 0));
         actionExit->setText(QApplication::translate("MainWindowClass", "Exit", 0));
         actionOpenDEM->setText(QApplication::translate("MainWindowClass", "Open DEM", 0));
+        actionSaveSHP->setText(QApplication::translate("MainWindowClass", "Save SHP", 0));
         menuFile->setTitle(QApplication::translate("MainWindowClass", "File", 0));
     } // retranslateUi
 

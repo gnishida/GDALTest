@@ -46,15 +46,6 @@ void Canvas::mouseMoveEvent(QMouseEvent* e) {
 void Canvas::mouseReleaseEvent(QMouseEvent* e) {
 }
 
-void Canvas::loadShapfile(const std::string& filename) {
-	shapes.resize(shapes.size() + 1);
-	shapes.back().load(filename);
-
-	updateShapeImage();
-	cameraCenter = glm::vec2(width() * 0.5, height() * 0.5);
-	constrainCameraCenter();
-}
-
 void Canvas::loadDEMfile(const std::string& filename) {
 	gs::DEM dem;
 	dem.load(filename);
@@ -75,6 +66,19 @@ void Canvas::loadDEMfile(const std::string& filename) {
 		shapeImage = QImage(dem.width, dem.height, QImage::Format_ARGB32);
 		constrainCameraCenter();
 	}
+}
+
+void Canvas::loadShapfile(const std::string& filename) {
+	shapes.resize(shapes.size() + 1);
+	shapes.back().load(filename);
+
+	updateShapeImage();
+	cameraCenter = glm::vec2(width() * 0.5, height() * 0.5);
+	constrainCameraCenter();
+}
+
+void Canvas::saveShapfile(const std::string& filename) {
+	shapes.front().save(filename);
 }
 
 void Canvas::constrainCameraCenter() {
