@@ -139,7 +139,7 @@ void Canvas::updateShapeImage() {
 					int x1 = part.points[l].x - minBound.x;
 					int y1 = maxBound.y - part.points[l].y;
 					int x2 = part.points[l + 1].x - minBound.x;
-					int y2 = maxBound.y - part.points[(l + 1) % part.points.size()].y;
+					int y2 = maxBound.y - part.points[l + 1].y;
 
 					painter.drawLine(x1, y1, x2, y2);
 				}
