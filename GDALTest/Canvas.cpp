@@ -133,12 +133,12 @@ void Canvas::updateShapeImage() {
 			painter.setPen(QPen(QBrush(COLOR_TABLES[i]), penWidth));
 
 			for (int k = 0; k < shapes[i].shapeObjects[j].parts.size(); ++k) {
-				for (int l = 0; l < shapes[i].shapeObjects[j].parts[k].points.size(); ++l) {
+				for (int l = 0; l < shapes[i].shapeObjects[j].parts[k].points.size() - 1; ++l) {
 					gs::ShapePart& part = shapes[i].shapeObjects[j].parts[k];
 
 					int x1 = part.points[l].x - minBound.x;
 					int y1 = maxBound.y - part.points[l].y;
-					int x2 = part.points[(l + 1) % part.points.size()].x - minBound.x;
+					int x2 = part.points[l + 1].x - minBound.x;
 					int y2 = maxBound.y - part.points[(l + 1) % part.points.size()].y;
 
 					painter.drawLine(x1, y1, x2, y2);
