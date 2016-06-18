@@ -2,6 +2,39 @@
 
 namespace gs {
 
+	Variant::Variant(int value) : _intValue(value), type(OFTInteger) {
+		_doubleValue = value;
+		_stringValue = std::to_string(value);
+	}
+
+	Variant::Variant(double value) : _doubleValue(value), type(OFTReal) {
+		_intValue = value;
+		_stringValue = std::to_string(value);
+	}
+
+	Variant::Variant(const std::string& value) : _stringValue(value), type(OFTString) {
+		char* pEnd;
+		_doubleValue = std::strtod(value.c_str(), &pEnd);
+		if (*pEnd == 0) {
+			try {
+				_intValue = std::stoi(value);
+				_doubleValue = std::stod(value);
+			}
+			catch (std::invalid_argument ex) {
+				_intValue = 0;
+				_doubleValue = 0;
+			}
+			catch (std::out_of_range ex) {
+				_intValue = 0;
+				_doubleValue = 0;
+			}
+		}
+		else {
+			_intValue = 0;
+			_doubleValue = 0;
+		}
+	}
+
 	std::ostream& operator<<(std::ostream& os, const Variant& v) {
 		if (v.type == OFTInteger) {
 			os << v._intValue;
@@ -75,6 +108,10 @@ namespace gs {
 					}
 				}
 
+				if (shapeObjects[i].attributes["NbreEtages"].intValue() > 30) {
+					int xxx = 0;
+				}
+
 				// このshapeのベクトルデータを読み込む
 				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
 				if (poGeometry != NULL) {
@@ -88,6 +125,7 @@ namespace gs {
 
 						updateBounds(poPoint);
 					}
+					else if (wkbFlatten(poGeometry->getGeometryType()) == wkbLineString) {						OGRLineString* poLineString = (OGRLineString*)poGeometry;						readLineString(poLineString, shapeObjects[i]);					}
 					else if (wkbFlatten(poGeometry->getGeometryType()) == wkbPolygon) {
 						OGRPolygon* poPolygon = (OGRPolygon*)poGeometry;
 						readPolygon(poPolygon, shapeObjects[i]);
@@ -158,6 +196,9 @@ namespace gs {
 			readRing(ring, shapeObject.parts[j + 1]);
 		}
 	}
+
+	void Shape::readLineString(OGRLineString* lineString, ShapeObject& shapeObject) {
+		shapeObject.parts.resize(1);		shapeObject.parts[0].points.resize(lineString->getNumPoints());		for (int i = 0; i < lineString->getNumPoints(); ++i) {			OGRPoint point;			lineString->getPoint(i, &point);			shapeObject.parts[0].points[i].x = point.getX();			shapeObject.parts[0].points[i].y = point.getY();			updateBounds(&point);		}	}
 
 	void Shape::readRing(OGRLinearRing* ring, ShapePart& shapePart) {
 		shapePart.points.resize(ring->getNumPoints());

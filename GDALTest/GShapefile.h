@@ -20,9 +20,9 @@ namespace gs {
 
 	public:
 		Variant() : type(-1) {}
-		Variant(int value) : _intValue(value), type(OFTInteger) {}
-		Variant(double value) : _doubleValue(value), type(OFTReal) {}
-		Variant(const std::string& value) : _stringValue(value), type(OFTString) {}
+		Variant(int value);
+		Variant(double value);
+		Variant(const std::string& value);
 
 		int intValue() { return _intValue; }
 		double doubleValue() { return _doubleValue; }
@@ -69,6 +69,7 @@ namespace gs {
 		void updateBounds(OGRPoint* poPoint);
 		void readMultiPolygon(OGRMultiPolygon* poMultiPolygon, ShapeObject& shapeObject);
 		void readPolygon(OGRPolygon* poPolygon, ShapeObject& shapeObject);
+		void readLineString(OGRLineString* lineString, ShapeObject& shapeObject);
 		void readRing(OGRLinearRing* ring, ShapePart& shapePart);
 	};
 

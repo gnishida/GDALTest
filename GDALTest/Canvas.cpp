@@ -169,14 +169,14 @@ void Canvas::selectShape(const glm::vec2& pt) {
 		min_obj->selected = true;
 
 		///////////////// DEBUG ///////////////////////////////////////////////
-		for (auto it = min_obj->attributes.begin(); it != min_obj->attributes.end(); ++it) {
-			std::cout << it->first << ": " << it->second << ", ";
+		std::cout << "Selected shape:" << std::endl;
+		for (int i = 0; i < min_obj->parts.size(); ++i) {
+			std::cout << "  Part #" << i << ":" << std::endl;
+			for (int j = 0; j < min_obj->parts[i].points.size(); ++j) {
+				std::cout << "    " << min_obj->parts[i].points[j].x << "," << min_obj->parts[i].points[j].y << "," << min_obj->parts[i].points[j].z << std::endl;
+			}
 		}
 		std::cout << std::endl;
-
-		if (min_obj->parts.size() > 1) {
-			std::cout << "!!!!!!!!!!!! Multiple parts: " << min_obj->parts.size() << std::endl;
-		}
 		///////////////// DEBUG ///////////////////////////////////////////////
 	}
 
